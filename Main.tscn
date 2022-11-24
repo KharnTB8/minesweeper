@@ -58,10 +58,10 @@ transform = Transform2D( 2, 0, 0, 2, 0, 0 )
 
 [node name="Game over" type="Label" parent="Text Layer"]
 visible = false
-margin_left = 18.0
-margin_top = 139.5
-margin_right = 99.0
-margin_bottom = 155.5
+margin_left = 46.0
+margin_top = 75.0
+margin_right = 127.0
+margin_bottom = 91.0
 text = "Game over"
 align = 1
 
