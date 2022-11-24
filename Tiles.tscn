@@ -1,0 +1,37 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://Minesweeper-pack/Minesweeper-pack/single-files/minesweeper_01.png" type="Texture" id=1]
+[ext_resource path="res://Minesweeper-pack/Minesweeper-pack/single-files/minesweeper_05.png" type="Texture" id=2]
+[ext_resource path="res://Clue.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Minesweeper-pack/Minesweeper-pack/single-files/minesweeper_00.png" type="Texture" id=4]
+[ext_resource path="res://Tiles.gd" type="Script" id=5]
+[ext_resource path="res://Minesweeper-pack/Minesweeper-pack/single-files/minesweeper_02.png" type="Texture" id=6]
+
+[node name="Tiles" type="Node2D"]
+script = ExtResource( 5 )
+
+[node name="TileBack" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+centered = false
+
+[node name="Clue" parent="." instance=ExtResource( 3 )]
+
+[node name="TileBomb" type="Sprite" parent="."]
+texture = ExtResource( 2 )
+centered = false
+
+[node name="TileCover" type="Sprite" parent="."]
+texture = ExtResource( 4 )
+centered = false
+
+[node name="Flag" type="Sprite" parent="."]
+visible = false
+position = Vector2( 16, 16 )
+texture = ExtResource( 6 )
+
+[node name="Control" type="Control" parent="."]
+show_behind_parent = true
+margin_right = 32.0
+margin_bottom = 32.0
+
+[connection signal="gui_input" from="Control" to="." method="_on_Control_gui_input"]
