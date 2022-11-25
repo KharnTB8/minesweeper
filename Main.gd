@@ -90,12 +90,12 @@ func game_lost():
 	for bomb in bomb_coords:
 		bomb_tile = instance_from_id(dict_instances[bomb])
 		bomb_tile.uncover(false)
-	$"Text Layer/Game over".visible = true
+	$TextLayer/GameOver.visible = true
 	
 	game_is_over = true
 func game_won():
 	game_is_over = true
-	$"Text Layer/You win!".visible = true
+	$TextLayer/YouWin.visible = true
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
