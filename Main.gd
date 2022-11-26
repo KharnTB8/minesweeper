@@ -1,75 +1,117 @@
 extends Node2D
 
+# basic attributes of the game
+var height: int	 = 10
+var width: int	 = 10
+var bomb: int	 = 10
+# arrays of coords for bombs and clues
+var bomb_coords: Array = []
+var clue_coords: Array = []
+var chunk_queue: Array = []
+# dictionaries that keeps track of the coordinates linked to an instance id
+var dict_instances: Dictionary = {}
+var reversed_dict_instances: Dictionary = {} 
 
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-var height = 10
-var width = 10
-var bomb = 10
-var bomb_coords = []
-onready var playfield = $Playfield
+var game_is_over: bool = false
+var win_goal: int #generated from the basic attributes of the game
+var win_counter: int = 0
+
+#nodes used by the scene script
+onready var playfield		 = $Playfield
+onready var tileGrid		 = $_TileGridContainer
+onready var gameOverLabel	 = $TextLayer/GameOver
+onready var youWinLabel		 = $TextLayer/YouWin
+
+#scene to be used by the script
 const tiles = preload("res://Tiles.tscn")
-var clue_coords = []
-var dict_instances = {}
-var reversed_dict_instances = {}
-var dict_chunk_queue = {}
-var game_is_over = false
-var win_goal
-var win_counter = 0
-# Called when the node enters the scene tree for the first time.
+
+
 func _ready():
 	win_condition_generation()
 	bombcoordgeneration()
 	for h in height:
 		for w in width:
-			var tempvector = Vector2(w,h)
-			playfield.set_cellv(tempvector,0) 
-			var object = tiles.instance()
-			object.connect("uncover_signal", self, "chunk_uncover")
-			object.connect("lose_signal", self, "game_lost")
-			object.connect("win_signal", self, "game_won")
-			dict_instances[tempvector] = object.get_instance_id()
-			reversed_dict_instances[object.get_instance_id()] = tempvector
-			object.position = playfield.map_to_world(tempvector) * playfield.scale
-			add_child(object)
-			if bomb_coords.find(tempvector) >= 0:
-				object.setbomb()
-				cluecoordgen(tempvector)
+			var tempvector = Vector2(w,h) #significant info that will be used at several places
+			
+			#setup for the single tile 
+			var single_tile = tiles.instance()
+			single_tile.connect("uncover_signal", self, "chunk_uncover")
+			single_tile.connect("lose_signal", self, "game_lost")
+			single_tile.connect("increment_uncovered_signal", self, "check_game_won")
+			
+			#saving the relation of instance id to coordinate in dictionaries
+			dict_instances[tempvector] = single_tile.get_instance_id()
+			reversed_dict_instances[single_tile.get_instance_id()] = tempvector
+			
+			#fills the tilemap at the given coordinate with a dummy tile 
+			playfield.set_cellv(tempvector,0)
+			#uses the position of that dummy tile to set the position of our actual tile
+			single_tile.position = playfield.map_to_world(tempvector) * playfield.scale
+			#removes the dummy tile
 			playfield.set_cellv(tempvector,-1)
+			
+			tileGrid.add_child(single_tile) #instanciates the node to the scene and calls its _ready()
+			
+			#sets the bomb at the coordinate if it was determined to be a bomb by the bomb list
+			if tempvector in bomb_coords:
+				single_tile.setbomb()
+				cluecoordgen(tempvector)
+			
 	cluepopulation()
+
+# will queue up all the tiles to uncover around a clicked tile(tile_id) and uncover them
+# recursively called
 func chunk_uncover(tile_id):
-	var clicked_tile = instance_from_id(tile_id)
-	if not clicked_tile.bomb:
-		var clickedcoords = reversed_dict_instances[tile_id]
-		for x in 3:
-			for y in 3:
-				var offsetx = -1+clickedcoords.x + x
-				var offsety = -1+clickedcoords.y + y
-				var xrange = offsetx >= 0 and offsetx <= width-1
-				var yrange = offsety >= 0 and offsety <= height-1
-				var selfcoords = offsetx== clickedcoords.x and offsety== clickedcoords.y
-				if xrange and yrange and !(selfcoords):
-					var tempvector = Vector2(offsetx, offsety)
-					dict_chunk_queue[dict_instances[tempvector]] = tempvector
-		for next_tile in dict_chunk_queue:
-			var next_tile_instance = instance_from_id(next_tile)
-			if not next_tile_instance.bomb and  next_tile_instance.covered:
-				next_tile_instance.uncover(false)
-				if next_tile_instance.clue == 0:
-					chunk_uncover(next_tile)
+	var clickedcoords = reversed_dict_instances[tile_id]
+	#populate the chunk queue
+	#since surrounding tiles are layed out like a 3x3 square with an offset
+	#we can iterate through that 3x3 square like usual with nested fors
+	for x in 3: # x values range from 0 to 2
+		for y in 3:
+			#the -1 is that offset to move the starting coordinate to be on the top left tile
+			#we add the coords of the clicked tile to center it around that tile
+			var offsetx = -1 + clickedcoords.x + x
+			var offsety = -1 + clickedcoords.y + y
+			var tempvector = Vector2(offsetx, offsety)
+			var surrounding_tile_id = dict_instances.get(tempvector)
+			#set of boolean checks to see if the coordinate is a valid tile
+			#just to make the next if more readable
+			var isInXRange: bool = offsetx >= 0 and offsetx <= width-1
+			var isInYRange: bool = offsety >= 0 and offsety <= height-1 #checks if it is within the boundaries of the playfield
+			var isSelfCoords: bool = offsetx == clickedcoords.x and offsety == clickedcoords.y #checks if it is its own coordinate
+			var isAlreadyAdded: bool = surrounding_tile_id in chunk_queue #prevents the addition of duplicates
+			if isInXRange and isInYRange and !(isSelfCoords) and not isAlreadyAdded:
+				chunk_queue.push_back(surrounding_tile_id)
+	
+	#possibly taxing since the recursive call will start its own for loop
+	#actual iterating of the chunk queue to uncover the tiles
+	for next_tile_id in chunk_queue:
+		var next_tile_instance = instance_from_id(next_tile_id)
+		if next_tile_instance.covered: #make sure to only treat tiles that are still covered
+			next_tile_instance.uncover(false)
+			if next_tile_instance.clue == 0:
+				chunk_uncover(next_tile_id)
+
+#fills the array that keeps track of where the bombs are on the grid
 func bombcoordgeneration():
+	#rng setup
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
+	
 	var tempx = 0
 	var tempy = 0
-	var tempcoord = []
+	var tempcoord
+	
+	#while is used to make sure that there are the correct amount of bombs
+	#due to the randomness of the generation it could generate the same coord multiple times
 	while bomb_coords.size()<bomb:
 		tempx = rng.randi_range(0,width-1)
 		tempy = rng.randi_range(0,height-1)
 		tempcoord = Vector2(tempx,tempy)
-		if bomb_coords.find(tempcoord) < 0:
+		if not tempcoord in bomb_coords: #only add coords that arent already in the array
 			bomb_coords.push_back(tempcoord)
+
+#takes a coordinate of a bomb and saves the coordinates the valid surrounding tiles
 func cluecoordgen(bombcoord : Vector2):
 	for x in 3:
 		for y in 3:
@@ -81,24 +123,31 @@ func cluecoordgen(bombcoord : Vector2):
 			if xrange and yrange and !(selfcoords):
 				var tempvector = Vector2(offsetx, offsety)
 				clue_coords.push_back(tempvector)
+
+#from the list of clue coordinates (which can have duplicates in the list)
+#increments the clue for the tile
 func cluepopulation():
 	for cluecoord in clue_coords :
 		var tempTile = instance_from_id(dict_instances[cluecoord])
 		tempTile.incrementClue()
+
 func game_lost():
 	var bomb_tile
-	for bomb in bomb_coords:
-		bomb_tile = instance_from_id(dict_instances[bomb])
-		bomb_tile.uncover(false)
-	$TextLayer/GameOver.visible = true
-	
-	game_is_over = true
-func game_won():
-	game_is_over = true
-	$TextLayer/YouWin.visible = true
-	
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+	for revealed_bomb in bomb_coords: #just to uncover remaining bombs
+		bomb_tile = instance_from_id(dict_instances[revealed_bomb])
+		if bomb_tile.covered:
+			bomb_tile.uncover(false)
+	gameOverLabel.visible = true
+	game_is_over = true #prevents any more clicking on the playing field
+
+func check_game_won():
+	win_counter +=1
+	if win_counter == win_goal:
+		game_is_over = true
+		youWinLabel.visible = true
+
+#if we take the amount of uncovered tiles as the sensor for a win
+#the maximum amount of tiles to uncover would be equal to
+#the area of the playfield minus the amount of bombs
 func win_condition_generation():
 	win_goal = height * width - bomb
