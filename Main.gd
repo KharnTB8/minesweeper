@@ -62,6 +62,7 @@ func _ready():
 # will queue up all the tiles to uncover around a clicked tile(tile_id) and uncover them
 # recursively called
 func chunk_uncover(tile_id):
+	
 	var clickedcoords = reversed_dict_instances[tile_id]
 	#populate the chunk queue
 	#since surrounding tiles are layed out like a 3x3 square with an offset
@@ -141,7 +142,9 @@ func game_lost():
 	game_is_over = true #prevents any more clicking on the playing field
 
 func check_game_won():
+	
 	win_counter +=1
+	print(win_counter)
 	if win_counter == win_goal:
 		game_is_over = true
 		youWinLabel.visible = true

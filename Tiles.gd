@@ -34,11 +34,14 @@ func uncover(emit: bool):
 		covered = false
 		tileCoverNode.visible = false
 		if bomb: #clicked on a bomb, game is lost. parent handles this
-			emit_signal("lose_signal")
-		elif emit and clue == 0:
-			emit_signal("uncover_signal", self.get_instance_id())
+			emit_signal("lose_signal") #just to end the 
 		else:
+			if emit and clue == 0:
+				emit_signal("uncover_signal", self.get_instance_id())
 			emit_signal("increment_uncovered_signal")
+			
+			
+			
 		
 		
 
