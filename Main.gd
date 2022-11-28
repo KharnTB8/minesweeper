@@ -1,9 +1,10 @@
 extends Node2D
 
 # basic attributes of the game
-var height: int	 = 10
-var width: int	 = 10
-var bomb: int	 = 10
+export var height: int	 		= 10
+export var width: int	 		= 10
+export var bomb_percent: float 	= 0.10
+var bomb: int
 # arrays of coords for bombs and clues
 var bomb_coords: Array = []
 var clue_coords: Array = []
@@ -27,8 +28,12 @@ const tiles = preload("res://Tiles.tscn")
 
 
 func _ready():
-	win_condition_generation()
+	new_game_gen()
+
+func new_game_gen():
+	initialize()
 	bombcoordgeneration()
+	win_condition_generation()
 	for h in height:
 		for w in width:
 			var tempvector = Vector2(w,h) #significant info that will be used at several places
@@ -56,8 +61,24 @@ func _ready():
 			if tempvector in bomb_coords:
 				single_tile.setbomb()
 				cluecoordgen(tempvector)
-			
+		
 	cluepopulation()
+
+func initialize():
+	clear_tiles()
+	game_is_over = false
+	gameOverLabel.visible = false
+	youWinLabel.visible = false
+	bomb_coords = []
+	clue_coords = []
+	chunk_queue = []
+	dict_instances = {}
+	reversed_dict_instances = {}
+
+func clear_tiles():
+	for n in tileGrid.get_children():
+		tileGrid.remove_child(n)
+		n.queue_free()
 
 # will queue up all the tiles to uncover around a clicked tile(tile_id) and uncover them
 # recursively called
@@ -102,7 +123,7 @@ func bombcoordgeneration():
 	var tempx = 0
 	var tempy = 0
 	var tempcoord
-	
+	bomb = int(height * width * bomb_percent)
 	#while is used to make sure that there are the correct amount of bombs
 	#due to the randomness of the generation it could generate the same coord multiple times
 	while bomb_coords.size()<bomb:
@@ -153,4 +174,5 @@ func check_game_won():
 #the maximum amount of tiles to uncover would be equal to
 #the area of the playfield minus the amount of bombs
 func win_condition_generation():
+	win_counter = 0
 	win_goal = height * width - bomb

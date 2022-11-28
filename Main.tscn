@@ -43,24 +43,28 @@ func _ready():
 #	pass
 "
 
-[node name="Main" type="Node2D"]
+[node name="CenterContainer" type="CenterContainer"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="Main" type="Node2D" parent="."]
 script = ExtResource( 3 )
 
-[node name="Playfield" type="TileMap" parent="."]
+[node name="Playfield" type="TileMap" parent="Main"]
 tile_set = SubResource( 1 )
 cell_size = Vector2( 32, 32 )
 format = 1
 script = SubResource( 2 )
 
-[node name="_TileGridContainer" type="Container" parent="."]
+[node name="_TileGridContainer" type="Container" parent="Main"]
 margin_right = 40.0
 margin_bottom = 40.0
 
-[node name="TextLayer" type="CenterContainer" parent="."]
+[node name="TextLayer" type="CenterContainer" parent="Main"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="GameOver" type="Label" parent="TextLayer"]
+[node name="GameOver" type="Label" parent="Main/TextLayer"]
 visible = false
 margin_left = -117.0
 margin_top = -29.0
@@ -69,7 +73,7 @@ margin_bottom = 28.0
 custom_fonts/font = ExtResource( 2 )
 text = "Game over"
 
-[node name="YouWin" type="Label" parent="TextLayer"]
+[node name="YouWin" type="Label" parent="Main/TextLayer"]
 visible = false
 margin_left = -92.0
 margin_top = -29.0
