@@ -40,7 +40,7 @@ func new_game_gen():
 			
 			#setup for the single tile 
 			var single_tile = tiles.instance()
-			single_tile.connect("uncover_signal", self, "chunk_uncover")
+			single_tile.connect("uncover_signal", self, "chunk_uncover_gen")
 			single_tile.connect("lose_signal", self, "game_lost")
 			single_tile.connect("increment_uncovered_signal", self, "check_game_won")
 			
@@ -82,7 +82,7 @@ func clear_tiles():
 
 # will queue up all the tiles to uncover around a clicked tile(tile_id) and uncover them
 # recursively called
-func chunk_uncover(tile_id):
+func chunk_uncover_gen(tile_id, recursive: bool):
 	
 	var clickedcoords = reversed_dict_instances[tile_id]
 	#populate the chunk queue
@@ -103,16 +103,23 @@ func chunk_uncover(tile_id):
 			var isSelfCoords: bool = offsetx == clickedcoords.x and offsety == clickedcoords.y #checks if it is its own coordinate
 			var isAlreadyAdded: bool = surrounding_tile_id in chunk_queue #prevents the addition of duplicates
 			if isInXRange and isInYRange and !(isSelfCoords) and not isAlreadyAdded:
+				#only get the tile to check its clue when the tile is valid
+				var surrounding_tile_instance = instance_from_id(surrounding_tile_id)
 				chunk_queue.push_back(surrounding_tile_id)
-	
-	#possibly taxing since the recursive call will start its own for loop
-	#actual iterating of the chunk queue to uncover the tiles
+				#it is only when a tile has no clue that we need to check its own 8 surrounding tiles
+				if surrounding_tile_instance.clue == 0:
+					chunk_uncover_gen(surrounding_tile_id, true)
+	#since the recursive call are still building the queue we need to only actually call
+	#the uncovering until tue queue is complete
+	if not recursive:
+		chunk_uncover()
+
+#actual iterating of the chunk queue to uncover the tiles
+func chunk_uncover():
 	for next_tile_id in chunk_queue:
 		var next_tile_instance = instance_from_id(next_tile_id)
 		if next_tile_instance.covered: #make sure to only treat tiles that are still covered
 			next_tile_instance.uncover(false)
-			if next_tile_instance.clue == 0:
-				chunk_uncover(next_tile_id)
 
 #fills the array that keeps track of where the bombs are on the grid
 func bombcoordgeneration():
@@ -163,9 +170,7 @@ func game_lost():
 	game_is_over = true #prevents any more clicking on the playing field
 
 func check_game_won():
-	
 	win_counter +=1
-	print(win_counter)
 	if win_counter == win_goal:
 		game_is_over = true
 		youWinLabel.visible = true

@@ -37,7 +37,7 @@ func uncover(emit: bool):
 			emit_signal("lose_signal") #just to end the 
 		else:
 			if emit and clue == 0:
-				emit_signal("uncover_signal", self.get_instance_id())
+				emit_signal("uncover_signal", self.get_instance_id(), false)#false for non-recursive call
 			emit_signal("increment_uncovered_signal")
 			
 			
