@@ -42,6 +42,7 @@ func width_drag_ended(value_changed):
 	if value_changed:
 		game.width = custom_width_slider.value
 
+#@todo make all these just one function from the signal with a size param
 func small_pressed():
 	change_size(10,10)
 
