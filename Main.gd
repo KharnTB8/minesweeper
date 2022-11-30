@@ -131,6 +131,8 @@ func bombcoordgeneration():
 	var tempy = 0
 	var tempcoord
 	bomb = int(height * width * bomb_percent)
+	if bomb < 1:
+		bomb = 1
 	#while is used to make sure that there are the correct amount of bombs
 	#due to the randomness of the generation it could generate the same coord multiple times
 	while bomb_coords.size()<bomb:
