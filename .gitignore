@@ -2,7 +2,8 @@
 .import/
 export.cfg
 export_presets.cfg
-
+Minesweeper.exe
+Minesweeper.pck
 # Imported translations (automatically generated from CSV files)
 *.translation
 
