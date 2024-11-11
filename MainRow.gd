@@ -1,34 +1,42 @@
 extends HBoxContainer
 
-onready var game = get_node("CenterContainer/Main")
-onready var diff = get_node("Difficulty_Menu")
-onready var custom = get_node("Custom_Difficulty")
-onready var bomb_option = diff.get_node("MarginContainer/VBoxContainer/Bomb_Options")
-onready var easy_button = bomb_option.get_node("Easy")
-onready var norm_button = bomb_option.get_node("Normal")
-onready var hard_button = bomb_option.get_node("Hard")
-onready var size_option = diff.get_node("MarginContainer/VBoxContainer/Size_Options")
-onready var small_size_button = size_option.get_node("Small")
-onready var med_size_button = size_option.get_node("Medium")
-onready var large_size_button = size_option.get_node("Large")
+@onready var gameContainer = get_node("CenterContainer")
+@onready var game = gameContainer.get_node("Main")
+@onready var diff = get_node("Difficulty_Menu")
+@onready var custom = get_node("Custom_Difficulty")
+@onready var bomb_option = diff.get_node("MarginContainer/VBoxContainer/Bomb_Options")
+@onready var easy_button = bomb_option.get_node("Easy")
+@onready var norm_button = bomb_option.get_node("Normal")
+@onready var hard_button = bomb_option.get_node("Hard")
+@onready var size_option = diff.get_node("MarginContainer/VBoxContainer/Size_Options")
+@onready var small_size_button = size_option.get_node("Small")
+@onready var med_size_button = size_option.get_node("Medium")
+@onready var large_size_button = size_option.get_node("Large")
+@onready var new_game_button = get_node("Buttons/NewGameButton")
+@onready var change_diff_button = get_node("Buttons/ChangeDifficultyButton")
+@onready var custom_diff_button = get_node("Buttons/CustomDifficultyButton")
 
-onready var custom_option = get_node("Custom_Difficulty/MarginContainer/OptionsContainer")
-onready var custom_bomb_slider = custom_option.get_node("BombOptions/BombSlider")
-onready var custom_height_slider = custom_option.get_node("HeightOptions/HeightSlider")
-onready var custom_width_slider = custom_option.get_node("WidthOptions/WidthSlider")
+@onready var custom_option = get_node("Custom_Difficulty/MarginContainer/OptionsContainer")
+@onready var custom_bomb_slider = custom_option.get_node("BombOptions/BombSlider")
+@onready var custom_height_slider = custom_option.get_node("HeightOptions/HeightSlider")
+@onready var custom_width_slider = custom_option.get_node("WidthOptions/WidthSlider")
 
 func _ready():
-	easy_button.connect("pressed", self,"easy_pressed")
-	norm_button.connect("pressed", self,"norm_pressed")
-	hard_button.connect("pressed", self,"hard_pressed")
+	neighbor_setup()
+	easy_button.pressed.connect(easy_pressed)
+	norm_button.pressed.connect(norm_pressed)
+	hard_button.pressed.connect(hard_pressed)
 	
-	small_size_button.connect("pressed", self,"small_pressed")
-	med_size_button.connect("pressed", self,"med_pressed")
-	large_size_button.connect("pressed", self,"large_pressed")
+	small_size_button.pressed.connect(small_pressed)
+	med_size_button.pressed.connect(med_pressed)
+	large_size_button.pressed.connect(large_pressed)
 	
-	custom_bomb_slider.connect("drag_ended", self, "bomb_drag_ended")
-	custom_height_slider.connect("drag_ended", self, "height_drag_ended")
-	custom_width_slider.connect("drag_ended", self, "width_drag_ended")
+	custom_bomb_slider.drag_ended.connect(bomb_drag_ended)
+	custom_height_slider.drag_ended.connect(height_drag_ended)
+	custom_width_slider.drag_ended.connect(width_drag_ended)
+
+func neighbor_setup():
+	new_game_button.grab_focus()
 
 func bomb_drag_ended(value_changed):
 	if value_changed:
@@ -73,16 +81,17 @@ func change_bombs(value):
 
 func _on_NewGameButton_pressed():
 	game.new_game_gen()
-	game.visible = true
+	gameContainer.visible = true
 	diff.visible = false
 	custom.visible = false
+	
 
 func _on_Change_Difficulty_pressed():
-	game.visible = false
+	gameContainer.visible = false
 	diff.visible = true
 	custom.visible = false
 
 func _on_Custom_Game_pressed():
-	game.visible = false
+	gameContainer.visible = false
 	diff.visible = false
 	custom.visible = true

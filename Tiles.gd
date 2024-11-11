@@ -4,12 +4,12 @@ signal uncover_signal(tile_id)
 signal lose_signal
 signal increment_uncovered_signal
 
-onready var tileBombNode	= $TileBomb
-onready var tileBackNode	= $TileBack
-onready var clueNode		= $Clue
-onready var clueSpriteNode	= $Clue/ClueSprite
-onready var flagNode		= $Flag
-onready var tileCoverNode	= $TileCover
+@onready var tileBombNode	= $TileBomb
+@onready var tileBackNode	= $TileBack
+@onready var clueNode		= $Clue
+@onready var clueSpriteNode	= $Clue/ClueSprite
+@onready var flagNode		= $Flag
+@onready var tileCoverNode	= $TileCover
 
 #default states of the tile
 var bomb: bool		= false
@@ -26,7 +26,7 @@ func spriteinitialization():
 	tileBackNode.visible	 = true
 	clueNode.visible		 = false 
 	flagNode.visible		 = false
-	tileCoverNode.visible	 = true
+	tileCoverNode.visible	 = false
 
 #handles the uncovering of self and starts chunk uncovering if emit is true
 func uncover(emit: bool):
@@ -34,11 +34,11 @@ func uncover(emit: bool):
 		covered = false
 		tileCoverNode.visible = false
 		if bomb: #clicked on a bomb, game is lost. parent handles this
-			emit_signal("lose_signal") #just to end the 
+			lose_signal.emit() #just to end the 
 		else:
 			if emit and clue == 0:
-				emit_signal("uncover_signal", self.get_instance_id(), false)#false for non-recursive call
-			emit_signal("increment_uncovered_signal")
+				uncover_signal.emit(self.get_instance_id(), false)#false for non-recursive call
+			increment_uncovered_signal.emit()
 			
 			
 			
@@ -58,12 +58,14 @@ func setbomb():
 	clue = 0
 
 func incrementClue():
+	
 	if clue < 8 and not bomb:
 		clue +=1
 		clueSpriteNode.set_frame(clue)
 		clueNode.visible = true
 
 func _on_Control_gui_input(event):
+	
 	if event is InputEventMouseButton and not get_parent().get_parent().game_is_over:
 		if event.is_action_pressed("left_click"):
 			uncover(true)
