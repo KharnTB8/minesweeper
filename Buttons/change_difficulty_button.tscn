@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ds1xbt33hquxa"]
+
+[ext_resource type="PackedScene" uid="uid://gg7hfv72s47q" path="res://Buttons/MenuButton.tscn" id="1_576b4"]
+
+[node name="ChangeDifficultyButton" instance=ExtResource("1_576b4")]
+text = "Change Difficulty"

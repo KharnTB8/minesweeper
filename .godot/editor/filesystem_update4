@@ -1,0 +1,10 @@
+res://MainScreen.tscn
+res://Fonts/roboto-36.tres
+res://theme/button_normal.tres
+res://Main.tscn
+res://Main.gd
+res://Clue.tscn
+res://Custom_Difficulty.tscn
+res://Tiles.tscn
+res://Tiles.gd
+res://Difficulty_Menu.tscn
